@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - master
-      - dev/create_ci_pipeline
+      - dev/ci_pipeline
   pull_request:
     branches: [master]
 
