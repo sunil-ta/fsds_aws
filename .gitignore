@@ -1,0 +1,13 @@
+.pyc
+/mlruns
+/datasets
+.csv
+datasets/
+data/
+mlruns/
+artifacts/*
+logs/*
+!logs/.gitkeep
+.vscode/
+__pycache__/
+src/housing.egg-info/
