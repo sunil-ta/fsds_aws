@@ -1,11 +1,30 @@
-import numpy as np
-import pandas as pd
-import matplotlib as mpl
-import matplotlib.pyplot as plt
 import os
 import tarfile
-from six.moves import urllib
 
+import mlflow
+import mlflow.sklearn
+import numpy as np
+import pandas as pd
+from scipy.stats import randint
+from six.moves import urllib
+from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.compose import ColumnTransformer
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.impute import SimpleImputer
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_absolute_error, mean_squared_error
+from sklearn.model_selection import (
+    GridSearchCV,
+    RandomizedSearchCV,
+    StratifiedShuffleSplit,
+    train_test_split,
+)
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.tree import DecisionTreeRegressor
+
+remote_server_uri = "http://0.0.0.0:5002"  # set to your server URI
+mlflow.set_tracking_uri(remote_server_uri)  # or set the MLFLOW_TRACKING_URI in the env
 
 DOWNLOAD_ROOT = "https://raw.githubusercontent.com/ageron/handson-ml/master/"
 HOUSING_PATH = os.path.join("datasets", "housing")
@@ -20,23 +39,25 @@ def fetch_housing_data(housing_url=HOUSING_URL, housing_path=HOUSING_PATH):
     housing_tgz.extractall(path=housing_path)
     housing_tgz.close()
 
-import pandas as pd
 
 def load_housing_data(housing_path=HOUSING_PATH):
     csv_path = os.path.join(housing_path, "housing.csv")
     return pd.read_csv(csv_path)
 
-housing = load_housing_data
 
-from sklearn.model_selection import train_test_split
+fetch_housing_data()
+print("done.....")
+housing = load_housing_data()
+
 
 train_set, test_set = train_test_split(housing, test_size=0.2, random_state=42)
 
-housing["income_cat"] = pd.cut(housing["median_income"],
-                               bins=[0., 1.5, 3.0, 4.5, 6., np.inf],
-                               labels=[1, 2, 3, 4, 5])
+housing["income_cat"] = pd.cut(
+    housing["median_income"],
+    bins=[0.0, 1.5, 3.0, 4.5, 6.0, np.inf],
+    labels=[1, 2, 3, 4, 5],
+)
 
-from sklearn.model_selection import StratifiedShuffleSplit
 
 split = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
 for train_index, test_index in split.split(housing, housing["income_cat"]):
@@ -47,15 +68,24 @@ for train_index, test_index in split.split(housing, housing["income_cat"]):
 def income_cat_proportions(data):
     return data["income_cat"].value_counts() / len(data)
 
+
 train_set, test_set = train_test_split(housing, test_size=0.2, random_state=42)
 
-compare_props = pd.DataFrame({
-    "Overall": income_cat_proportions(housing),
-    "Stratified": income_cat_proportions(strat_test_set),
-    "Random": income_cat_proportions(test_set),
-}).sort_index()
-compare_props["Rand. %error"] = 100 * compare_props["Random"] / compare_props["Overall"] - 100
-compare_props["Strat. %error"] = 100 * compare_props["Stratified"] / compare_props["Overall"] - 100
+
+compare_props = pd.DataFrame(
+    {
+        "Overall": income_cat_proportions(housing),
+        "Stratified": income_cat_proportions(strat_test_set),
+        "Random": income_cat_proportions(test_set),
+    }
+).sort_index()
+
+compare_props["Rand.\\%error"] = (
+    100 * compare_props["Random"] / compare_props["Overall"] - 100
+)
+compare_props["Strat.\\%error"] = (
+    100 * compare_props["Stratified"] / compare_props["Overall"] - 100
+)
 
 for set_ in (strat_train_set, strat_test_set):
     set_.drop("income_cat", axis=1, inplace=True)
@@ -66,117 +96,188 @@ housing.plot(kind="scatter", x="longitude", y="latitude", alpha=0.1)
 
 corr_matrix = housing.corr()
 corr_matrix["median_house_value"].sort_values(ascending=False)
-housing["rooms_per_household"] = housing["total_rooms"]/housing["households"]
-housing["bedrooms_per_room"] = housing["total_bedrooms"]/housing["total_rooms"]
-housing["population_per_household"]=housing["population"]/housing["households"]
 
-housing = strat_train_set.drop("median_house_value", axis=1) # drop labels for training set
+# column index
+col_names = "total_rooms", "total_bedrooms", "population", "households"
+rooms_ix, bedrooms_ix, population_ix, households_ix = [
+    housing.columns.get_loc(c) for c in col_names
+]  # get the column indices
+
+
+class CombinedAttributesAdder(BaseEstimator, TransformerMixin):
+    def fit(self, X, y=None):
+        return self  # nothing else to do
+
+    def transform(self, X):
+        rooms_per_household = X[:, rooms_ix] / X[:, households_ix]
+        population_per_household = X[:, population_ix] / X[:, households_ix]
+        bedrooms_per_room = X[:, bedrooms_ix] / X[:, rooms_ix]
+        return np.c_[
+            X, rooms_per_household, population_per_household, bedrooms_per_room
+        ]
+
+
+attr_adder = CombinedAttributesAdder()
+housing_extra_attribs = attr_adder.transform(housing.values)
+housing = pd.DataFrame(
+    housing_extra_attribs,
+    columns=list(housing.columns)
+    + ["rooms_per_household", "population_per_household", "bedrooms_per_room"],
+    index=housing.index,
+)
+housing = strat_train_set.drop(
+    "median_house_value", axis=1
+)  # drop labels for training set
 housing_labels = strat_train_set["median_house_value"].copy()
-
-from sklearn.impute import SimpleImputer
-imputer = SimpleImputer(strategy="median")
-
-housing_num = housing.drop('ocean_proximity', axis=1)
-
-imputer.fit(housing_num)
-X = imputer.transform(housing_num)
-
-housing_tr = pd.DataFrame(X, columns=housing_num.columns,
-                          index=housing.index)
-housing_tr["rooms_per_household"] = housing_tr["total_rooms"]/housing_tr["households"]
-housing_tr["bedrooms_per_room"] = housing_tr["total_bedrooms"]/housing_tr["total_rooms"]
-housing_tr["population_per_household"]=housing_tr["population"]/housing_tr["households"]
-
-housing_cat = housing[['ocean_proximity']]
-housing_prepared = housing_tr.join(pd.get_dummies(housing_cat, drop_first=True))
-
-from sklearn.linear_model import LinearRegression
-
-lin_reg = LinearRegression()
-lin_reg.fit(housing_prepared, housing_labels)
-
-from sklearn.metrics import mean_squared_error
-housing_predictions = lin_reg.predict(housing_prepared)
-lin_mse = mean_squared_error(housing_labels, housing_predictions)
-lin_rmse = np.sqrt(lin_mse)
-lin_rmse
+housing_num = housing.drop("ocean_proximity", axis=1)
+num_pipeline = Pipeline(
+    [
+        ("imputer", SimpleImputer(strategy="median")),
+        ("attribs_adder", CombinedAttributesAdder()),
+        ("std_scaler", StandardScaler()),
+    ]
+)
+housing_tr = num_pipeline.fit_transform(housing_num)
+num_attribs = list(housing_num)
+cat_attribs = ["ocean_proximity"]
+full_pipeline = ColumnTransformer(
+    [
+        ("num", num_pipeline, num_attribs),
+        ("cat", OneHotEncoder(), cat_attribs),
+    ]
+)
+housing_prepared = full_pipeline.fit_transform(housing)
 
 
-from sklearn.metrics import mean_absolute_error
-lin_mae = mean_absolute_error(housing_labels, housing_predictions)
-lin_mae
+def linear_Regression():
+    with mlflow.start_run(run_name="Linear Regression", nested=True):
+        lin_reg = LinearRegression()
+        lin_reg.fit(housing_prepared, housing_labels)
+        housing_predictions = lin_reg.predict(housing_prepared)
+        lin_mse = mean_squared_error(housing_labels, housing_predictions)
+        lin_rmse = np.sqrt(lin_mse)
+        lin_mae = mean_absolute_error(housing_labels, housing_predictions)
+
+        mlflow.log_metric(key="mse", value=lin_mse)
+        mlflow.log_metric(key="rmse", value=lin_rmse)
+        mlflow.log_metric(key="mae", value=lin_mae)
+        # mlflow.log_artifact(data_path)
+        print("Save to: {}".format(mlflow.get_artifact_uri()))
+        mlflow.set_tag("tag1", "Linear Regression")
+        mlflow.sklearn.log_model(lin_reg, "model")
 
 
-from sklearn.tree import DecisionTreeRegressor
+def decision_tree():
+    with mlflow.start_run(run_name="Decision Tree Regression", nested=True):
+        tree_reg = DecisionTreeRegressor(random_state=42)
+        tree_reg.fit(housing_prepared, housing_labels)
 
-tree_reg = DecisionTreeRegressor(random_state=42)
-tree_reg.fit(housing_prepared, housing_labels)
+        housing_predictions = tree_reg.predict(housing_prepared)
+        tree_mse = mean_squared_error(housing_labels, housing_predictions)
+        tree_rmse = np.sqrt(tree_mse)
 
-housing_predictions = tree_reg.predict(housing_prepared)
-tree_mse = mean_squared_error(housing_labels, housing_predictions)
-tree_rmse = np.sqrt(tree_mse)
-tree_rmse
+        mlflow.log_metric(key="mse", value=tree_mse)
+        mlflow.log_metric(key="rmse", value=tree_rmse)
+        # mlflow.log_artifact(data_path)
+        print("Save to: {}".format(mlflow.get_artifact_uri()))
+        mlflow.set_tag("tag1", "Decision Tree Regression")
+        mlflow.sklearn.log_model(tree_reg, "model")
 
-
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import RandomizedSearchCV
-from scipy.stats import randint
 
 param_distribs = {
-        'n_estimators': randint(low=1, high=200),
-        'max_features': randint(low=1, high=8),
-    }
-
-forest_reg = RandomForestRegressor(random_state=42)
-rnd_search = RandomizedSearchCV(forest_reg, param_distributions=param_distribs,
-                                n_iter=10, cv=5, scoring='neg_mean_squared_error', random_state=42)
-rnd_search.fit(housing_prepared, housing_labels)
-cvres = rnd_search.cv_results_
-for mean_score, params in zip(cvres["mean_test_score"], cvres["params"]):
-    print(np.sqrt(-mean_score), params)
-
-
-from sklearn.model_selection import GridSearchCV
+    "n_estimators": randint(low=1, high=200),
+    "max_features": randint(low=1, high=8),
+}
 
 param_grid = [
     # try 12 (3×4) combinations of hyperparameters
-    {'n_estimators': [3, 10, 30], 'max_features': [2, 4, 6, 8]},
+    {"n_estimators": [3, 10, 30], "max_features": [2, 4, 6, 8]},
     # then try 6 (2×3) combinations with bootstrap set as False
-    {'bootstrap': [False], 'n_estimators': [3, 10], 'max_features': [2, 3, 4]},
-  ]
-
-forest_reg = RandomForestRegressor(random_state=42)
-# train across 5 folds, that's a total of (12+6)*5=90 rounds of training
-grid_search = GridSearchCV(forest_reg, param_grid, cv=5,
-                           scoring='neg_mean_squared_error', return_train_score=True)
-grid_search.fit(housing_prepared, housing_labels)
-
-grid_search.best_params_
-cvres = grid_search.cv_results_
-for mean_score, params in zip(cvres["mean_test_score"], cvres["params"]):
-    print(np.sqrt(-mean_score), params)
-
-feature_importances = grid_search.best_estimator_.feature_importances_
-sorted(zip(feature_importances, housing_prepared.columns), reverse=True)
+    {"bootstrap": [False], "n_estimators": [3, 10], "max_features": [2, 3, 4]},
+]
 
 
-final_model = grid_search.best_estimator_
+def randomized_search_cv(forest_reg):
+    with mlflow.start_run(run_name="Randomized search cv", nested=True):
+        rnd_search = RandomizedSearchCV(
+            forest_reg,
+            param_distributions=param_distribs,
+            n_iter=10,
+            cv=5,
+            scoring="neg_mean_squared_error",
+            random_state=42,
+        )
+        rnd_search.fit(housing_prepared, housing_labels)
+        cvres = rnd_search.cv_results_
 
-X_test = strat_test_set.drop("median_house_value", axis=1)
-y_test = strat_test_set["median_house_value"].copy()
-
-X_test_num = X_test.drop('ocean_proximity', axis=1)
-X_test_prepared = imputer.transform(X_test_num)
-X_test_prepared = pd.DataFrame(X_test_prepared, columns=X_test_num.columns,
-                          index=X_test.index)
-X_test_prepared["rooms_per_household"] = X_test_prepared["total_rooms"]/X_test_prepared["households"]
-X_test_prepared["bedrooms_per_room"] = X_test_prepared["total_bedrooms"]/X_test_prepared["total_rooms"]
-X_test_prepared["population_per_household"]=X_test_prepared["population"]/X_test_prepared["households"]
-
-X_test_cat = X_test[['ocean_proximity']]
-X_test_prepared = X_test_prepared.join(pd.get_dummies(X_test_cat, drop_first=True))
+        for mean_score, params in zip(cvres["mean_test_score"], cvres["params"]):
+            print(np.sqrt(-mean_score), params)
+        for param in cvres["params"]:
+            print(param)
+            mlflow.log_param(key="parametres", value=param)
+            break
 
 
-final_predictions = final_model.predict(X_test_prepared)
-final_mse = mean_squared_error(y_test, final_predictions)
-final_rmse = np.sqrt(final_mse)
+def grid_search_cv(forest_reg):
+    with mlflow.start_run(run_name="Grid search cv", nested=True):
+        # train across 5 folds, that's a total of (12+6)*5=90 rounds of training
+        grid_search = GridSearchCV(
+            forest_reg,
+            param_grid,
+            cv=5,
+            scoring="neg_mean_squared_error",
+            return_train_score=True,
+        )
+        grid_search.fit(housing_prepared, housing_labels)
+        cvres = grid_search.cv_results_
+        for mean_score, params in zip(cvres["mean_test_score"], cvres["params"]):
+            print(np.sqrt(-mean_score), params)
+
+        feature_importances = grid_search.best_estimator_.feature_importances_
+        extra_attribs = [
+            "rooms_per_hhold",
+            "pop_per_hhold",
+            "bedrooms_per_room",
+        ]
+        # cat_encoder = cat_pipeline.named_steps["cat_encoder"] # old solution
+        cat_encoder = full_pipeline.named_transformers_["cat"]
+        cat_one_hot_attribs = list(cat_encoder.categories_[0])
+        attributes = num_attribs + extra_attribs + cat_one_hot_attribs
+        sorted(zip(feature_importances, attributes), reverse=True)
+
+        final_model = grid_search.best_estimator_
+
+        X_test = strat_test_set.drop("median_house_value", axis=1)
+        y_test = strat_test_set["median_house_value"].copy()
+        X_test_prepared = full_pipeline.transform(X_test)
+        final_predictions = final_model.predict(X_test_prepared)
+        final_mse = mean_squared_error(y_test, final_predictions)
+        final_rmse = np.sqrt(final_mse)
+
+        mlflow.log_metric(key="mse", value=final_mse)
+        mlflow.log_metric(key="rmse", value=final_rmse)
+    return final_model
+
+
+def random_forest_regressor():
+    with mlflow.start_run(run_name="Random forest Regression", nested=True):
+        forest_reg = RandomForestRegressor(random_state=42)
+        print("Starting Randomized Search Cv ml flow")
+        randomized_search_cv(forest_reg)
+        print("&&&&&&&&&&&&&&")
+        print("Starting Grid Search Cv ml flow")
+        final_model = grid_search_cv(forest_reg)
+        print("&&&&&&&&&&&&&&")
+        mlflow.sklearn.log_model(final_model, "model")
+        mlflow.set_tag("tag1", "Random Forest Regression")
+
+
+mlflow.set_experiment("Modeling")
+with mlflow.start_run(
+    run_name="modeling parent run",
+):
+    linear_Regression()
+    decision_tree()
+    with mlflow.start_run(run_name="random forest parent run", nested=True):
+        print("starting Random forest ml flow")
+        random_forest_regressor()

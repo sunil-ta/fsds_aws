@@ -1,0 +1,47 @@
+[project]
+    name = "housing"
+    description = "Housing price prediction using Linear and Decision Tree based models."
+    authors = [
+        { name="Sunil Pradhan", email="sunil.pradhan@tigeranalytics.com" },
+    ]
+    readme = "README.md"
+    requires-python = ">=3.7"
+    dependencies = [
+        "numpy>=1.24.3",
+        "pandas>=1.5.3",
+        "scikit-learn<=1.2.2",
+        "pyyaml>=6.0",
+        "progressbar>=2.5",
+        "six",
+        "urllib3~=1.26.15"
+
+    ]
+    dynamic = ["version"]
+
+[project.urls]
+    "repository" = "https://github.com/suni-ta/fsds"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.hatch.build]
+    include = ["src"]
+
+[tool.hatch.version]
+    path = "src/__init__.py"
+
+[tool.hatch.envs.test]
+    dependencies = [
+        "pytest"
+    ]
+
+[tool.hatch.envs.test.scripts]
+    test = "pytest"
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests/unit_tests",
+    "tests/functional_tests"
+]
+python_files = "test_*.py"

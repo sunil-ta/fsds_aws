@@ -1,0 +1,16 @@
+name: fsds
+channels:
+  - https://repo.mamba.pm/conda-forge
+  - https://prefix.dev/conda-forge
+  - conda-forge
+dependencies:
+  - python=3.10
+  - numpy=1.24
+  - scikit-learn=1.2
+  - scipy=1.10
+  - flake8
+  - isort
+  - black
+  - pytest
+  - tree
+prefix: /home/sunilpradhan/conda/envs/fsds
