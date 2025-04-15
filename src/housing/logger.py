@@ -17,7 +17,10 @@ class Logger:
         if not os.path.exists(self.filename):
             open(self.filename, "w").close()
 
-        log_format = "%(asctime)s [%(levelname)s] %(filename)s:%(lineno)d:%(funcName)s - %(message)s"
+        log_format = (
+            "%(asctime)s [%(levelname)s] "
+            "%(filename)s:%(lineno)d:%(funcName)s - %(message)s"
+        )
 
         logging.basicConfig(
             filename=self.filename,

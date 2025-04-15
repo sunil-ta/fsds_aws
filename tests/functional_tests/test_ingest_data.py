@@ -3,10 +3,9 @@ import sys
 
 import pandas as pd
 
-
-
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 from src.housing.ingest_data import check_nulls
+
 
 def test_null_values():
     """
