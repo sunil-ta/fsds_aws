@@ -4,7 +4,7 @@ import os
 import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from src.score import score
+from src.housing.score import score
 
 parser = argparse.ArgumentParser()
 parser.add_argument(

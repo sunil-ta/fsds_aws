@@ -57,7 +57,6 @@ jobs:
 
       - name: Install package in dev mode
         run: |
-          conda activate fsds
           pip install -e .
 
       - name: Run data ingestion
@@ -68,7 +67,6 @@ jobs:
 
       - name: Run pytest
         run: |
-          conda activate fsds
           pytest --exitfirst --disable-warnings
 
   build:
@@ -97,7 +95,6 @@ jobs:
 
       - name: Build the package
         run: |
-          conda activate fsds
           python -m pip install build
           python -m build
 
@@ -138,11 +135,9 @@ jobs:
 
       - name: Install built package
         run: |
-          conda activate fsds
           pip install artifacts/dist/*.whl
 
       - name: Run workflow scripts with timestamp
         run: |
-          conda activate fsds
           echo "$(date +'%Y-%m-%d %H:%M:%S') - Running CI script"
           python main.py

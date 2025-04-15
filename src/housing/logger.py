@@ -17,10 +17,12 @@ class Logger:
         if not os.path.exists(self.filename):
             open(self.filename, "w").close()
 
+        log_format = "%(asctime)s [%(levelname)s] %(filename)s:%(lineno)d:%(funcName)s - %(message)s"
+
         logging.basicConfig(
             filename=self.filename,
             level=logging.DEBUG,
-            format="%(asctime)s %(message)s",
+            format=log_format,
             filemode=self.filemode,
         )
         logger = logging.getLogger()

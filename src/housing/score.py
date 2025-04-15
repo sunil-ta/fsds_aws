@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_squared_error
 
-from src.logger import Logger
+from src.housing.logger import Logger
 
 
 def score(data_path, model_path):

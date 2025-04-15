@@ -7,7 +7,7 @@ from six.moves import urllib
 from sklearn.impute import SimpleImputer
 from sklearn.model_selection import StratifiedShuffleSplit, train_test_split
 
-from src.logger import Logger
+from src.housing.logger import Logger
 
 
 def check_nulls(data):
