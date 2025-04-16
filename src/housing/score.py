@@ -73,9 +73,9 @@ def score(args):
         "random_cv",
         "grid_cv",
     ]
-    with mlflow.start_run(run_name="model scoring", nested=True) as child_run:
-        for model_name in model_names:
-            evaluate_and_log(model_name, args.stored_model_path, X_test, y_test)
+
+    for model_name in model_names:
+        evaluate_and_log(model_name, args.stored_model_path, X_test, y_test)
 
     print("✅ Scoring complete. Check logs and MLflow UI.")
     print("📍 Logs @")

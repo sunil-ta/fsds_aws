@@ -198,44 +198,44 @@ def train(args):
     )
     output_model_path = args.stored_model_path
     # mlflow.set_experiment("Modeling")
-    with mlflow.start_run(run_name="modeling parent run", nested=True) as child_run:
-        lg = Logger(
-            "./logs/train.log",
-            "Training Linear Regression model...",
-            "a",
-        )
-        lg.logging()
-        linear_regression(X_train, y_train, output_model_path)
 
-        lg = Logger(
-            "./logs/train.log",
-            "Training Decision Tree model...",
-            "a",
-        )
-        lg.logging()
-        decision_tree(X_train, y_train, output_model_path)
+    lg = Logger(
+        "./logs/train.log",
+        "Training Linear Regression model...",
+        "a",
+    )
+    lg.logging()
+    linear_regression(X_train, y_train, output_model_path)
 
-        lg = Logger(
-            "./logs/train.log",
-            "Training Random Forest model...",
-            "a",
-        )
-        lg.logging()
-        random_forest(X_train, y_train, output_model_path)
+    lg = Logger(
+        "./logs/train.log",
+        "Training Decision Tree model...",
+        "a",
+    )
+    lg.logging()
+    decision_tree(X_train, y_train, output_model_path)
 
-        forest_reg = RandomForestRegressor(random_state=42)
-        lg = Logger(
-            "./logs/train.log",
-            "Running Randomized Search CV for Random Forest...",
-            "a",
-        )
-        lg.logging()
-        randomized_search_cv(forest_reg, X_train, y_train, output_model_path)
+    lg = Logger(
+        "./logs/train.log",
+        "Training Random Forest model...",
+        "a",
+    )
+    lg.logging()
+    random_forest(X_train, y_train, output_model_path)
 
-        lg = Logger(
-            "./logs/train.log",
-            "Running Grid Search CV for Random Forest...",
-            "a",
-        )
-        lg.logging()
-        grid_search_cv(forest_reg, X_train, y_train, output_model_path)
+    forest_reg = RandomForestRegressor(random_state=42)
+    lg = Logger(
+        "./logs/train.log",
+        "Running Randomized Search CV for Random Forest...",
+        "a",
+    )
+    lg.logging()
+    randomized_search_cv(forest_reg, X_train, y_train, output_model_path)
+
+    lg = Logger(
+        "./logs/train.log",
+        "Running Grid Search CV for Random Forest...",
+        "a",
+    )
+    lg.logging()
+    grid_search_cv(forest_reg, X_train, y_train, output_model_path)

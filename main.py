@@ -9,16 +9,21 @@ def run_pipeline():
         mlflow.log_param("pipeline_stage", "start")
 
         # Run data ingestion
-        subprocess.run(["python", "-m", "scripts.ingest_data"])
-        mlflow.log_param("stage_1", "ingest_data_completed")
+        with mlflow.start_run(
+            run_name="housing_data_ingestion", nested=True
+        ) as child_run:
+            subprocess.run(["python", "-m", "scripts.ingest_data"])
+            mlflow.log_param("stage_1", "ingest_data_completed")
 
         # Run training
-        subprocess.run(["python", "-m", "scripts.train"])
-        mlflow.log_param("stage_2", "training_completed")
+        with mlflow.start_run(run_name="model_training", nested=True) as child_run:
+            subprocess.run(["python", "-m", "scripts.train"])
+            mlflow.log_param("stage_2", "training_completed")
 
         # Run scoring
-        subprocess.run(["python", "-m", "scripts.score"])
-        mlflow.log_param("stage_3", "scoring_completed")
+        with mlflow.start_run(run_name="model scoring", nested=True) as child_run:
+            subprocess.run(["python", "-m", "scripts.score"])
+            mlflow.log_param("stage_3", "scoring_completed")
 
         # mlflow.log_param("pipeline_stage", "done")
 
