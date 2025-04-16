@@ -1,63 +1,81 @@
 import os
 import pickle
+import mlflow
+import mlflow.sklearn
 
 import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_squared_error
 
-from src.housing.logger import Logger
+from housing.logger import Logger
+from housing.helper import get_path, load_data
 
 
-def score(data_path, model_path):
-    X_test_prepared = pd.read_csv(os.path.join(data_path, "housing_test_processed.csv"))
-    y_test = pd.read_csv(os.path.join(data_path, "housinglabel_test_processed.csv"))
+def evaluate_and_log(model_name, model_path, X_test, y_test):
+    try:
+        with mlflow.start_run(run_name=f"{model_name}_score", nested=True):
+            model_file = os.path.join(model_path, f"{model_name}.pkl")
+            model = pickle.load(open(model_file, "rb"))
+
+            lg = Logger(
+                "./logs/score.log",
+                f"{model_name} model loaded from {model_file}",
+                "a",
+            )
+            lg.logging()
+
+            preds = model.predict(X_test)
+            mse = mean_squared_error(y_test, preds)
+            rmse = np.sqrt(mse)
+            lg = Logger(
+                "./logs/score.log",
+                f"{model_name} - MSE: {mse:.4f}, RMSE: {rmse:.4f}",
+                "a",
+            )
+            lg.logging()
+
+        # with mlflow.start_run(run_name=f"{model_name}_score", nested=True):
+            mlflow.log_param("model_name", model_name)
+            mlflow.log_metric("mse", mse)
+            mlflow.log_metric("rmse", rmse)
+            mlflow.sklearn.log_model(model, artifact_path="model")
+
+        print(f"{model_name} - MSE: {mse:.4f}, RMSE: {rmse:.4f}")
+
+    except Exception as e:
+        lg = Logger(
+            "./logs/score.log",
+            f"{model_name} - FAILED: {str(e)}",
+            "a",
+        )
+        lg.logging()
+
+def score(args):
+    args = get_path()
+    X_train, y_train, X_test, y_test = load_data(args.train_data_path, args.test_data_path)
     lg = Logger(
         "./logs/score.log",
-        "file reaad successfully from {}".format(data_path),
+        f"Scoring started using test data from {args.test_data_path}",
         "w",
     )
     lg.logging()
-    final_model = pickle.load(open(model_path + "/lin_reg.pkl", "rb"))
-    lg = Logger(
-        "./logs/score.log",
-        "lin_reg.pkl model loaded successfully from {}".format(model_path),
-        "a",
-    )
-    lg.logging()
-    final_predictions = final_model.predict(X_test_prepared)
-    final_mse = mean_squared_error(y_test, final_predictions)
-    final_rmse = np.sqrt(final_mse)
-    lg = Logger(
-        "./logs/score.log",
-        "prediction-done! \n final_mse:{}, final_rmse:{}".format(final_mse, final_rmse),
-        "a",
-    )
-    lg.logging()
-    print(final_mse, final_rmse)
-    print("check logs @ ", lg.filename)
 
+    # mlflow.set_tracking_uri("http://127.0.0.1:5000")  # or your remote URI
+    # mlflow.set_experiment("Housing_Price_Prediction_Score")
 
-# if __name__ == "__main__":
-#     parser = argparse.ArgumentParser()
-#     parser.add_argument(
-#         "test_data_path",
-#         type=str,
-#         help="description of arg1",
-#         nargs="?",
-#         default="data/processed/test",
-#     )
-#     parser.add_argument(
-#         "stored_model_path",
-#         type=str,
-#         help="description of arg2",
-#         nargs="?",
-#         default="artifacts/model",
-#     )
-#     args = parser.parse_args()
+    model_names = [
+        "lin_reg",
+        "decision_tree",
+        "random_forest",
+        "random_cv",
+        "grid_cv",
+    ]
+    with mlflow.start_run(
+        run_name="model scoring",
+        nested = True
+    ) as child_run:
+        for model_name in model_names:
+            evaluate_and_log(model_name, args.stored_model_path, X_test, y_test)
 
-#     config = configparser.ConfigParser()
-#     config.read("setup.cfg")
-
-#     arg1 = args.test_data_path or config["DEFAULT"]["test_data_path"]
-#     arg2 = args.stored_model_path or config["DEFAULT"]["stored_model_path"]
-#     main(arg1, arg2)
+    print("✅ Scoring complete. Check logs and MLflow UI.")
+    print("📍 Logs @")

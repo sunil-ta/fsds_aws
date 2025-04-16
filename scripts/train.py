@@ -15,6 +15,13 @@ parser.add_argument(
     default="data/processed/train/",
 )
 parser.add_argument(
+    "test_data_path",
+    type=str,
+    help="description of arg1",
+    nargs="?",
+    default="data/processed/test/",
+)
+parser.add_argument(
     "stored_model_path",
     type=str,
     help="description of arg2",
@@ -26,6 +33,4 @@ args = parser.parse_args()
 config = configparser.ConfigParser()
 config.read("setup.cfg")
 
-arg1 = args.train_data_path
-arg2 = args.stored_model_path
-train(arg1, arg2)
+train(args)
