@@ -8,6 +8,12 @@ from src.housing.train import train
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
+    "run_id",
+    type=str,
+    help="description of arg1",
+    nargs="?",
+)
+parser.add_argument(
     "train_data_path",
     type=str,
     help="description of arg1",

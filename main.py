@@ -17,12 +17,12 @@ def run_pipeline():
 
         # Run training
         with mlflow.start_run(run_name="model_training", nested=True) as child_run:
-            subprocess.run(["python", "-m", "scripts.train"])
+            subprocess.run(["python", "-m", "scripts.train", child_run.info.run_id])
             mlflow.log_param("stage_2", "training_completed")
 
         # Run scoring
         with mlflow.start_run(run_name="model scoring", nested=True) as child_run:
-            subprocess.run(["python", "-m", "scripts.score"])
+            subprocess.run(["python", "-m", "scripts.score", child_run.info.run_id])
             mlflow.log_param("stage_3", "scoring_completed")
 
         # mlflow.log_param("pipeline_stage", "done")
