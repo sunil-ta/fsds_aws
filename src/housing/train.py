@@ -21,8 +21,8 @@ from housing.helper import get_path, load_data
 from housing.logger import Logger
 
 
-def linear_regression(X_train, y_train, output_model_path):
-    with mlflow.start_run(run_id=sys.argv[1]):
+def linear_regression(X_train, y_train, output_model_path, run_id):
+    with mlflow.start_run(run_id=run_id):
         with mlflow.start_run(run_name="Linear Regression", nested=True):
             lin_reg = LinearRegression()
             lin_reg.fit(X_train, y_train)
@@ -53,8 +53,8 @@ def linear_regression(X_train, y_train, output_model_path):
             lg.logging()
 
 
-def decision_tree(X_train, y_train, output_model_path):
-    with mlflow.start_run(run_id=sys.argv[1]):
+def decision_tree(X_train, y_train, output_model_path, run_id):
+    with mlflow.start_run(run_id=run_id):
         with mlflow.start_run(run_name="Decision Tree Regression", nested=True):
             tree_reg = DecisionTreeRegressor(random_state=42)
             tree_reg.fit(X_train, y_train)
@@ -83,8 +83,8 @@ def decision_tree(X_train, y_train, output_model_path):
             lg.logging()
 
 
-def random_forest(X_train, y_train, output_model_path):
-    with mlflow.start_run(run_id=sys.argv[1]):
+def random_forest(X_train, y_train, output_model_path, run_id):
+    with mlflow.start_run(run_id=run_id):
         with mlflow.start_run(run_name="Random Forest", nested=True):
             forest_reg = RandomForestRegressor(n_estimators=100, random_state=42)
             forest_reg.fit(X_train, y_train)
@@ -113,8 +113,8 @@ def random_forest(X_train, y_train, output_model_path):
             lg.logging()
 
 
-def randomized_search_cv(forest_reg, X_train, y_train, output_model_path):
-    with mlflow.start_run(run_id=sys.argv[1]):
+def randomized_search_cv(forest_reg, X_train, y_train, output_model_path, run_id):
+    with mlflow.start_run(run_id=run_id):
         with mlflow.start_run(run_name="Randomized Search CV", nested=True):
             param_distribs = {
                 "n_estimators": randint(10, 200),
@@ -156,8 +156,8 @@ def randomized_search_cv(forest_reg, X_train, y_train, output_model_path):
             lg.logging()
 
 
-def grid_search_cv(forest_reg, X_train, y_train, output_model_path):
-    with mlflow.start_run(run_id=sys.argv[1]):
+def grid_search_cv(forest_reg, X_train, y_train, output_model_path, run_id):
+    with mlflow.start_run(run_id=run_id):
         with mlflow.start_run(run_name="Grid Search CV", nested=True):
             param_grid = [
                 {"n_estimators": [10, 50, 100], "max_features": [2, 4, 6, 8]},
@@ -207,6 +207,7 @@ def train(args):
         args.train_data_path, args.test_data_path
     )
     output_model_path = args.stored_model_path
+    run_id = args.run_id
     # mlflow.set_experiment("Modeling")
 
     lg = Logger(
@@ -215,7 +216,7 @@ def train(args):
         "a",
     )
     lg.logging()
-    linear_regression(X_train, y_train, output_model_path)
+    linear_regression(X_train, y_train, output_model_path, run_id)
 
     lg = Logger(
         "./logs/train.log",
@@ -223,7 +224,7 @@ def train(args):
         "a",
     )
     lg.logging()
-    decision_tree(X_train, y_train, output_model_path)
+    decision_tree(X_train, y_train, output_model_path, run_id)
 
     lg = Logger(
         "./logs/train.log",
@@ -231,7 +232,7 @@ def train(args):
         "a",
     )
     lg.logging()
-    random_forest(X_train, y_train, output_model_path)
+    random_forest(X_train, y_train, output_model_path, run_id)
 
     forest_reg = RandomForestRegressor(random_state=42)
     lg = Logger(
@@ -240,7 +241,7 @@ def train(args):
         "a",
     )
     lg.logging()
-    randomized_search_cv(forest_reg, X_train, y_train, output_model_path)
+    randomized_search_cv(forest_reg, X_train, y_train, output_model_path, run_id)
 
     lg = Logger(
         "./logs/train.log",
@@ -248,4 +249,4 @@ def train(args):
         "a",
     )
     lg.logging()
-    grid_search_cv(forest_reg, X_train, y_train, output_model_path)
+    grid_search_cv(forest_reg, X_train, y_train, output_model_path, run_id)

@@ -12,9 +12,9 @@ from housing.helper import get_path, load_data
 from housing.logger import Logger
 
 
-def evaluate_and_log(model_name, model_path, X_test, y_test):
+def evaluate_and_log(model_name, model_path, X_test, y_test, run_id):
     try:
-        with mlflow.start_run(run_id=sys.argv[1]):
+        with mlflow.start_run(run_id=run_id):
             with mlflow.start_run(run_name=f"{model_name}_score", nested=True):
                 model_file = os.path.join(model_path, f"{model_name}.pkl")
                 model = pickle.load(open(model_file, "rb"))
@@ -58,6 +58,7 @@ def score(args):
     X_train, y_train, X_test, y_test = load_data(
         args.train_data_path, args.test_data_path
     )
+    run_id = args.run_id
     lg = Logger(
         "./logs/score.log",
         f"Scoring started using test data from {args.test_data_path}",
@@ -77,7 +78,7 @@ def score(args):
     ]
 
     for model_name in model_names:
-        evaluate_and_log(model_name, args.stored_model_path, X_test, y_test)
+        evaluate_and_log(model_name, args.stored_model_path, X_test, y_test, run_id)
 
     print("✅ Scoring complete. Check logs and MLflow UI.")
     print("📍 Logs @")
