@@ -1,5 +1,7 @@
 import subprocess
+
 import mlflow
+
 
 def run_pipeline():
     mlflow.set_experiment("Housing Price Prediction")
@@ -19,6 +21,7 @@ def run_pipeline():
         mlflow.log_param("stage_3", "scoring_completed")
 
         # mlflow.log_param("pipeline_stage", "done")
+
 
 if __name__ == "__main__":
     run_pipeline()

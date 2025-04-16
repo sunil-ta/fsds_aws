@@ -1,12 +1,13 @@
 import os
 import tarfile
+
+import mlflow
+import mlflow.sklearn
 import numpy as np
 import pandas as pd
 from six.moves import urllib
 from sklearn.impute import SimpleImputer
 from sklearn.model_selection import StratifiedShuffleSplit, train_test_split
-import mlflow
-import mlflow.sklearn
 
 from housing.logger import Logger
 
@@ -85,7 +86,8 @@ def ingest(download):
         fetch_housing_data(HOUSING_URL, HOUSING_PATH)
         lg = Logger(
             "./logs/ingest.logs",
-            f"Parsed data path is {download} \n Raw housing data fetched to {HOUSING_PATH}",
+            f"Parsed data path is {download} \
+                Raw housing data fetched to {HOUSING_PATH}",
             "w",
         )
         lg.logging()
@@ -131,12 +133,15 @@ def ingest(download):
 
         housing = strat_train_set.copy()
         housing["rooms_per_household"] = housing["total_rooms"] / housing["households"]
-        housing["bedrooms_per_room"] = housing["total_bedrooms"] / housing["total_rooms"]
-        housing["population_per_household"] = housing["population"] / housing["households"]
+        housing["bedrooms_per_room"] = (
+            housing["total_bedrooms"] / housing["total_rooms"]
+        )
+        housing["population_per_household"] = (
+            housing["population"] / housing["households"]
+        )
 
         housing = strat_train_set.drop("median_house_value", axis=1)
         housing_labels = strat_train_set["median_house_value"].copy()
-
 
         imputer = SimpleImputer(strategy="median")
         housing_num = housing.drop("ocean_proximity", axis=1)
@@ -144,9 +149,15 @@ def ingest(download):
         X = imputer.transform(housing_num)
         housing_tr = pd.DataFrame(X, columns=housing_num.columns, index=housing.index)
 
-        housing_tr["rooms_per_household"] = housing_tr["total_rooms"] / housing_tr["households"]
-        housing_tr["bedrooms_per_room"] = housing_tr["total_bedrooms"] / housing_tr["total_rooms"]
-        housing_tr["population_per_household"] = housing_tr["population"] / housing_tr["households"]
+        housing_tr["rooms_per_household"] = (
+            housing_tr["total_rooms"] / housing_tr["households"]
+        )
+        housing_tr["bedrooms_per_room"] = (
+            housing_tr["total_bedrooms"] / housing_tr["total_rooms"]
+        )
+        housing_tr["population_per_household"] = (
+            housing_tr["population"] / housing_tr["households"]
+        )
 
         housing_cat = housing[["ocean_proximity"]]
         housing_prepared = housing_tr.join(pd.get_dummies(housing_cat, drop_first=True))
@@ -170,17 +181,23 @@ def ingest(download):
         )
 
         X_test_cat = X_test[["ocean_proximity"]]
-        X_test_prepared = X_test_prepared.join(pd.get_dummies(X_test_cat, drop_first=True))
+        X_test_prepared = X_test_prepared.join(
+            pd.get_dummies(X_test_cat, drop_first=True)
+        )
 
         housing_processed_dir_path = os.path.join(download, "processed")
         train_path = os.path.join(housing_processed_dir_path, "train")
         os.makedirs(train_path, exist_ok=True)
         housing_prepared.to_csv(train_path + "/housing_train_processed.csv")
-        mlflow.log_artifact(train_path + "/housing_train_processed.csv", artifact_path="data")
+        mlflow.log_artifact(
+            train_path + "/housing_train_processed.csv", artifact_path="data"
+        )
 
         os.makedirs(train_path, exist_ok=True)
         housing_labels.to_csv(train_path + "/housinglabel_train_processed.csv")
-        mlflow.log_artifact(train_path + "/housinglabel_train_processed.csv", artifact_path="data")
+        mlflow.log_artifact(
+            train_path + "/housinglabel_train_processed.csv", artifact_path="data"
+        )
         lg = Logger(
             "./logs/ingest.logs",
             "Housing Train data Prepared to {}".format(train_path),
@@ -191,11 +208,15 @@ def ingest(download):
         test_path = os.path.join(housing_processed_dir_path, "test")
         os.makedirs(test_path, exist_ok=True)
         X_test_prepared.to_csv(test_path + "/housing_test_processed.csv")
-        mlflow.log_artifact(test_path + "/housing_test_processed.csv", artifact_path="data")
+        mlflow.log_artifact(
+            test_path + "/housing_test_processed.csv", artifact_path="data"
+        )
 
         os.makedirs(test_path, exist_ok=True)
         y_test.to_csv(test_path + "/housinglabel_test_processed.csv")
-        mlflow.log_artifact(test_path + "/housinglabel_test_processed.csv", artifact_path="data")
+        mlflow.log_artifact(
+            test_path + "/housinglabel_test_processed.csv", artifact_path="data"
+        )
         lg = Logger(
             "./logs/ingest.logs",
             "Housing Test data Prepared to {} \n Converted to CSV...Success!".format(
@@ -208,10 +229,7 @@ def ingest(download):
         print("check logs @ ", lg.filename)
         # Save processed data
 
-
-
         mlflow.log_metric("final_train_rows", housing_prepared.shape[0])
         mlflow.log_metric("final_train_columns", housing_prepared.shape[1])
 
         mlflow.set_tag("stage", "preprocessing_complete")
-

@@ -1,21 +1,23 @@
-import os
 import argparse
 import configparser
 import logging
+import os
+import pickle
+
 import mlflow
 import mlflow.sklearn
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import train_test_split, RandomizedSearchCV, GridSearchCV
-from sklearn.linear_model import LinearRegression
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_squared_error, mean_absolute_error
-from sklearn.preprocessing import StandardScaler
 from scipy.stats import randint
-import pickle
-from housing.logger import Logger
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_absolute_error, mean_squared_error
+from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.tree import DecisionTreeRegressor
+
 from housing.helper import get_path, load_data
+from housing.logger import Logger
 
 
 def linear_regression(X_train, y_train, output_model_path):
@@ -34,17 +36,20 @@ def linear_regression(X_train, y_train, output_model_path):
 
         # output_model_path = 'models/linear_regression/'
         os.makedirs(output_model_path, exist_ok=True)
-        with open(os.path.join(output_model_path, 'lin_reg.pkl'), 'wb') as f:
+        with open(os.path.join(output_model_path, "lin_reg.pkl"), "wb") as f:
             pickle.dump(lin_reg, f)
 
         mlflow.sklearn.log_model(lin_reg, "model")
         # logger.info(f"Linear Regression model saved to: {mlflow.get_artifact_uri()}")
         lg = Logger(
             "./logs/train.log",
-            "lin_reg.pkl model fit successfully and stored to {}".format(mlflow.get_artifact_uri()),
+            "lin_reg.pkl model fit successfully and stored to {}".format(
+                mlflow.get_artifact_uri()
+            ),
             "a",
         )
         lg.logging()
+
 
 def decision_tree(X_train, y_train, output_model_path):
     with mlflow.start_run(run_name="Decision Tree Regression", nested=True):
@@ -60,17 +65,20 @@ def decision_tree(X_train, y_train, output_model_path):
 
         # output_model_path = 'models/decision_tree/'
         os.makedirs(output_model_path, exist_ok=True)
-        with open(os.path.join(output_model_path, 'decision_tree.pkl'), 'wb') as f:
+        with open(os.path.join(output_model_path, "decision_tree.pkl"), "wb") as f:
             pickle.dump(tree_reg, f)
 
         mlflow.sklearn.log_model(tree_reg, "model")
         # logger.info(f"Decision Tree model saved to: {mlflow.get_artifact_uri()}")
         lg = Logger(
             "./logs/train.log",
-            "decision_tree.pkl model fit successfully and stored to {}".format(mlflow.get_artifact_uri()),
+            "decision_tree.pkl model fit successfully and stored to {}".format(
+                mlflow.get_artifact_uri()
+            ),
             "a",
         )
         lg.logging()
+
 
 def random_forest(X_train, y_train, output_model_path):
     with mlflow.start_run(run_name="Random Forest", nested=True):
@@ -86,17 +94,20 @@ def random_forest(X_train, y_train, output_model_path):
 
         # output_model_path = 'models/random_forest/'
         os.makedirs(output_model_path, exist_ok=True)
-        with open(os.path.join(output_model_path, 'random_forest.pkl'), 'wb') as f:
+        with open(os.path.join(output_model_path, "random_forest.pkl"), "wb") as f:
             pickle.dump(forest_reg, f)
 
         mlflow.sklearn.log_model(forest_reg, "model")
         # logger.info(f"Random Forest model saved to: {mlflow.get_artifact_uri()}")
         lg = Logger(
             "./logs/train.log",
-            "random_forest.pkl model fit successfully and stored to {}".format(mlflow.get_artifact_uri()),
+            "random_forest.pkl model fit successfully and stored to {}".format(
+                mlflow.get_artifact_uri()
+            ),
             "a",
         )
         lg.logging()
+
 
 def randomized_search_cv(forest_reg, X_train, y_train, output_model_path):
     with mlflow.start_run(run_name="Randomized Search CV", nested=True):
@@ -112,7 +123,7 @@ def randomized_search_cv(forest_reg, X_train, y_train, output_model_path):
             cv=5,
             scoring="neg_mean_squared_error",
             random_state=42,
-            n_jobs=-1
+            n_jobs=-1,
         )
         rnd_search.fit(X_train, y_train)
 
@@ -125,17 +136,20 @@ def randomized_search_cv(forest_reg, X_train, y_train, output_model_path):
 
         # output_model_path = 'models/random_forest_random_cv/'
         os.makedirs(output_model_path, exist_ok=True)
-        with open(os.path.join(output_model_path, 'random_cv.pkl'), 'wb') as f:
+        with open(os.path.join(output_model_path, "random_cv.pkl"), "wb") as f:
             pickle.dump(best_model, f)
 
         mlflow.sklearn.log_model(best_model, "model")
-        # logger.info(f"RandomizedSearchCV best model saved to: {mlflow.get_artifact_uri()}")
+
         lg = Logger(
             "./logs/train.log",
-            "random_cv.pkl model fit successfully and stored to {}".format(mlflow.get_artifact_uri()),
+            "random_cv.pkl model fit successfully and stored to {}".format(
+                mlflow.get_artifact_uri()
+            ),
             "a",
         )
         lg.logging()
+
 
 def grid_search_cv(forest_reg, X_train, y_train, output_model_path):
     with mlflow.start_run(run_name="Grid Search CV", nested=True):
@@ -150,7 +164,7 @@ def grid_search_cv(forest_reg, X_train, y_train, output_model_path):
             cv=5,
             scoring="neg_mean_squared_error",
             return_train_score=True,
-            n_jobs=-1
+            n_jobs=-1,
         )
         grid_search.fit(X_train, y_train)
 
@@ -163,26 +177,28 @@ def grid_search_cv(forest_reg, X_train, y_train, output_model_path):
 
         # output_model_path = 'models/random_forest_grid_cv/'
         os.makedirs(output_model_path, exist_ok=True)
-        with open(os.path.join(output_model_path, 'grid_cv.pkl'), 'wb') as f:
+        with open(os.path.join(output_model_path, "grid_cv.pkl"), "wb") as f:
             pickle.dump(best_model, f)
 
         mlflow.sklearn.log_model(best_model, "model")
         # logger.info(f"GridSearchCV best model saved to: {mlflow.get_artifact_uri()}")
         lg = Logger(
             "./logs/train.log",
-            "grid_cv.pkl model fit successfully and stored to {}".format(mlflow.get_artifact_uri()),
+            "grid_cv.pkl model fit successfully and stored to {}".format(
+                mlflow.get_artifact_uri()
+            ),
             "a",
         )
         lg.logging()
 
+
 def train(args):
-    X_train, y_train, X_test, y_test = load_data(args.train_data_path, args.test_data_path)
+    X_train, y_train, X_test, y_test = load_data(
+        args.train_data_path, args.test_data_path
+    )
     output_model_path = args.stored_model_path
     # mlflow.set_experiment("Modeling")
-    with mlflow.start_run(
-        run_name="modeling parent run",
-        nested = True
-    ) as child_run:
+    with mlflow.start_run(run_name="modeling parent run", nested=True) as child_run:
         lg = Logger(
             "./logs/train.log",
             "Training Linear Regression model...",

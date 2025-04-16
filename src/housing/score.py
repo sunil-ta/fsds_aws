@@ -1,14 +1,14 @@
 import os
 import pickle
+
 import mlflow
 import mlflow.sklearn
-
 import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_squared_error
 
-from housing.logger import Logger
 from housing.helper import get_path, load_data
+from housing.logger import Logger
 
 
 def evaluate_and_log(model_name, model_path, X_test, y_test):
@@ -34,7 +34,7 @@ def evaluate_and_log(model_name, model_path, X_test, y_test):
             )
             lg.logging()
 
-        # with mlflow.start_run(run_name=f"{model_name}_score", nested=True):
+            # with mlflow.start_run(run_name=f"{model_name}_score", nested=True):
             mlflow.log_param("model_name", model_name)
             mlflow.log_metric("mse", mse)
             mlflow.log_metric("rmse", rmse)
@@ -50,9 +50,12 @@ def evaluate_and_log(model_name, model_path, X_test, y_test):
         )
         lg.logging()
 
+
 def score(args):
     args = get_path()
-    X_train, y_train, X_test, y_test = load_data(args.train_data_path, args.test_data_path)
+    X_train, y_train, X_test, y_test = load_data(
+        args.train_data_path, args.test_data_path
+    )
     lg = Logger(
         "./logs/score.log",
         f"Scoring started using test data from {args.test_data_path}",
@@ -70,10 +73,7 @@ def score(args):
         "random_cv",
         "grid_cv",
     ]
-    with mlflow.start_run(
-        run_name="model scoring",
-        nested = True
-    ) as child_run:
+    with mlflow.start_run(run_name="model scoring", nested=True) as child_run:
         for model_name in model_names:
             evaluate_and_log(model_name, args.stored_model_path, X_test, y_test)
 
