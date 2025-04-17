@@ -13,4 +13,7 @@ dependencies:
   - black
   - pytest
   - tree
+  - pip
+  - pip:
+    - mlflow
 prefix: /home/sunilpradhan/conda/envs/fsds

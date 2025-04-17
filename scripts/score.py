@@ -8,11 +8,25 @@ from src.housing.score import score
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
+    "run_id",
+    type=str,
+    help="description of arg1",
+    nargs="?",
+)
+
+parser.add_argument(
+    "train_data_path",
+    type=str,
+    help="description of arg1",
+    nargs="?",
+    default="data/processed/train/",
+)
+parser.add_argument(
     "test_data_path",
     type=str,
     help="description of arg1",
     nargs="?",
-    default="data/processed/test",
+    default="data/processed/test/",
 )
 parser.add_argument(
     "stored_model_path",
@@ -26,6 +40,4 @@ args = parser.parse_args()
 config = configparser.ConfigParser()
 config.read("setup.cfg")
 
-arg1 = args.test_data_path or config["DEFAULT"]["test_data_path"]
-arg2 = args.stored_model_path or config["DEFAULT"]["stored_model_path"]
-score(arg1, arg2)
+score(args)
