@@ -47,4 +47,34 @@ http://localhost:5000/
 ```
 ## to look for logs - go to logs folder.
 
+# docker setup
+
+## 1. Build Docker Image
+Make sure you are in the root directory (where the Dockerfile is located), and run:
+```
+docker build -t fsds-model .
+```
+
+## 2. Run Docker Container
+To simply run the training pipeline:
+```
+docker run fsds-model
+```
+
+To expose MLflow UI on port 5000:
+```
+docker run -p 5000:5000 -v $(pwd)/mlruns:/mlruns fsds-model
+```
+
+Then in other terminal run below one:
+```
+mlflow ui --backend-store-uri ./mlruns --port 5000
+```
+
+or click below link to track the expirement in browser
+
+```
+http://localhost:5000
+```
+
 ### to tweak any configuration and any other pertinent information go to pyproject.toml
