@@ -1,26 +1,33 @@
-FROM continuumio/miniconda3
+FROM python:3.10-slim
 
-COPY . /app
 WORKDIR /app
 
-# Copy environment and project
-COPY environment.yml .
-RUN conda env create -f environment.yml
+# Install system packages required for building Python packages
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    python3-venv \
+    python3-dev \
+    libffi-dev \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-# Activate environment
-SHELL ["conda", "run", "-n", "fsds", "/bin/bash", "-c"]
+# Set up virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
-# Copy all files
+# Copy requirements and install
+COPY requirements.txt .
+RUN pip install --upgrade pip && pip install -r requirements.txt
+
 COPY . .
 
+# App settings
 ENV MLFLOW_TRACKING_URI=file:///mlruns
-ENV PYTHONPATH="${PYTHONPATH}:/app/src"
+ENV PYTHONPATH="/app:/app/src"
+ENV GIT_PYTHON_REFRESH=quiet
 
-# Create folder for mlruns
+
 RUN mkdir -p /mlruns
-
-# Expose MLflow UI port
 EXPOSE 5000
 
-# Default command
-CMD ["conda", "run", "-n", "fsds", "python", "main.py"]
+CMD ["python", "main.py"]
