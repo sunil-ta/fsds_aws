@@ -11,11 +11,11 @@ setup(
     description="Housing Price Prediction",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/sunil-ta/fsds",
+    url="https://github.com/sunil-ta/fsds_aws",
     author="sunil",
     author_email="sunil.pradhan@tigeranalytics.com",
     package_dir={"": "src"},
     packages=find_packages(where="src"),
     python_requires=">=3.8, <4",
-    project_urls={"Source": "https://github.com/sunilpradhan/fsds"},
+    project_urls={"Source": "https://github.com/sunilpradhan/fsds_aws"},
 )

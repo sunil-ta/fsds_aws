@@ -5,7 +5,7 @@ on:
     branches:
       - master
       - dev/ci_pipeline
-      - enh/ci_pipeline_mlflow
+      - enh/pipeline_deployement
   pull_request:
     branches: [master]
 

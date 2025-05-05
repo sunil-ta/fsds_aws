@@ -19,7 +19,7 @@
     dynamic = ["version"]
 
 [project.urls]
-    "repository" = "https://github.com/suni-ta/fsds"
+    "repository" = "https://github.com/suni-ta/fsds_aws"
 
 [build-system]
 requires = ["setuptools>=61.0"]
