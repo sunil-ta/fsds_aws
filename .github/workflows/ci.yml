@@ -6,6 +6,7 @@ on:
       - master
       - dev/ci_pipeline
       - enh/pipeline_deployement
+      - dev/model_monitoring
   pull_request:
     branches: [master]
 
