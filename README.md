@@ -77,4 +77,66 @@ or click below link to track the expirement in browser
 http://localhost:5000
 ```
 
+## Command to deploy in ECR
+
+Retrieve an authentication token and authenticate your Docker client to your registry. Use the AWS CLI:
+
+```
+aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin 435141881759.dkr.ecr.ap-southeast-1.amazonaws.com
+```
+
+
+Build your Docker image using the following command.
+
+```
+docker build -t fsds/housing-repo .
+```
+
+After the build completes, tag your image so you can push the image to this repository:
+
+```
+docker tag fsds/housing-repo:latest 435141881759.dkr.ecr.ap-southeast-1.amazonaws.com/fsds/housing-repo:latest
+```
+
+Run the following command to push this image to your newly created AWS repository:
+
+```
+docker push 435141881759.dkr.ecr.ap-southeast-1.amazonaws.com/fsds/housing-repo:latest
+```
+
+
+## Command to deploy in EKS
+Assuming your `kubectl` is configured for EKS cluster
+# step-1: Navigate to the folder
+```
+cd manifests
+```
+
+# step-2: Deploy the Pod to EKS
+
+```
+kubectl apply -f housing-app-pod.yaml
+```
+
+verify deployment using:
+```
+kubectl get pods
+```
+
+```
+kubectl describe pod housing-app
+```
+
+To see the logs:
+
+```
+kubectl logs housing-app
+```
+
+Incase you want to delete the existing Pod:
+
+```
+kubectl delete pod housing-app
+```
+
 ### to tweak any configuration and any other pertinent information go to pyproject.toml

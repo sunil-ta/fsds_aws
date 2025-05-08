@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: housing-app
+  labels:
+    app: housing
+spec:
+  restartPolicy: Never
+  containers:
+    - name: housing-app-container
+      image: 435141881759.dkr.ecr.ap-southeast-1.amazonaws.com/fsds/housing-repo:latest
+      imagePullPolicy: IfNotPresent
+      resources:
+        requests:
+          cpu: "500m"
+          memory: "512Mi"
+        limits:
+          cpu: "1"
+          memory: "1Gi"
+      command: ["python", "main.py"]
