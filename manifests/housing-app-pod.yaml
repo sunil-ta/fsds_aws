@@ -8,7 +8,7 @@ spec:
   restartPolicy: Never
   containers:
     - name: housing-app-container
-      image: 435141881759.dkr.ecr.ap-southeast-1.amazonaws.com/fsds/housing-repo:lates
+      image: 435141881759.dkr.ecr.ap-southeast-1.amazonaws.com/fsds/housing-repo:latest
       imagePullPolicy: IfNotPresent
       resources:
         requests:
