@@ -139,4 +139,13 @@ Incase you want to delete the existing Pod:
 kubectl delete pod housing-app
 ```
 
+## To excute Model Monitoring alone
+
+Navigate to cd scripts
+then run following
+
+```
+python model_monitoring.py
+```
+
 ### to tweak any configuration and any other pertinent information go to pyproject.toml

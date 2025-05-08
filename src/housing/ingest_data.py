@@ -182,13 +182,13 @@ def ingest(download):
     housing_processed_dir_path = os.path.join(download, "processed")
     train_path = os.path.join(housing_processed_dir_path, "train")
     os.makedirs(train_path, exist_ok=True)
-    housing_prepared.to_csv(train_path + "/housing_train_processed.csv")
+    housing_prepared.to_csv(train_path + "/housing_train_processed.csv", index=False)
     mlflow.log_artifact(
         train_path + "/housing_train_processed.csv", artifact_path="data"
     )
 
     os.makedirs(train_path, exist_ok=True)
-    housing_labels.to_csv(train_path + "/housinglabel_train_processed.csv")
+    housing_labels.to_csv(train_path + "/housinglabel_train_processed.csv", index=False)
     mlflow.log_artifact(
         train_path + "/housinglabel_train_processed.csv", artifact_path="data"
     )
@@ -201,11 +201,11 @@ def ingest(download):
 
     test_path = os.path.join(housing_processed_dir_path, "test")
     os.makedirs(test_path, exist_ok=True)
-    X_test_prepared.to_csv(test_path + "/housing_test_processed.csv")
+    X_test_prepared.to_csv(test_path + "/housing_test_processed.csv", index=False)
     mlflow.log_artifact(test_path + "/housing_test_processed.csv", artifact_path="data")
 
     os.makedirs(test_path, exist_ok=True)
-    y_test.to_csv(test_path + "/housinglabel_test_processed.csv")
+    y_test.to_csv(test_path + "/housinglabel_test_processed.csv", index=False)
     mlflow.log_artifact(
         test_path + "/housinglabel_test_processed.csv", artifact_path="data"
     )
