@@ -1,0 +1,45 @@
+2025-05-08 06:56:54,636 [DEBUG] logger.py:32:logging - Initialized EvidentlyReportGenerator
+2025-05-08 06:56:57,571 [DEBUG] logger.py:32:logging - Data Drift Report saved to /mnt/d/fsds_aws/reports/data_drift_report.html
+2025-05-08 06:57:00,026 [DEBUG] logger.py:32:logging - Data Summary Report saved to /mnt/d/fsds_aws/reports/data_summary_report.html
+2025-05-08 06:57:00,198 [DEBUG] logger.py:32:logging - Text Evals Report saved to /mnt/d/fsds_aws/reports/text_evals.html
+2025-05-08 06:57:02,246 [DEBUG] logger.py:32:logging - Value Stats Report saved to /mnt/d/fsds_aws/reports/value_stat_report.html
+2025-05-08 06:57:02,781 [DEBUG] logger.py:32:logging - Column Analysis Report saved to /mnt/d/fsds_aws/reports/column_report.html
+2025-05-08 06:57:02,808 [DEBUG] logger.py:32:logging - Missing values in reference data:
+longitude                     0
+latitude                      0
+housing_median_age            0
+total_rooms                   0
+total_bedrooms                0
+population                    0
+households                    0
+median_income                 0
+rooms_per_household           0
+bedrooms_per_room             0
+population_per_household      0
+ocean_proximity_INLAND        0
+ocean_proximity_ISLAND        0
+ocean_proximity_NEAR BAY      0
+ocean_proximity_NEAR OCEAN    0
+dtype: int64
+2025-05-08 06:57:02,813 [DEBUG] logger.py:32:logging - Missing values in current data:
+longitude                     0
+latitude                      0
+housing_median_age            0
+total_rooms                   0
+total_bedrooms                0
+population                    0
+households                    0
+median_income                 0
+rooms_per_household           0
+bedrooms_per_room             0
+population_per_household      0
+ocean_proximity_INLAND        0
+ocean_proximity_ISLAND        0
+ocean_proximity_NEAR BAY      0
+ocean_proximity_NEAR OCEAN    0
+dtype: int64
+2025-05-08 06:57:03,547 [DEBUG] logger.py:32:logging - lin_reg model performance report saved to /mnt/d/fsds_aws/reports/lin_reg_performance_report.html
+2025-05-08 06:57:04,157 [DEBUG] logger.py:32:logging - decision_tree model performance report saved to /mnt/d/fsds_aws/reports/decision_tree_performance_report.html
+2025-05-08 06:57:04,787 [DEBUG] logger.py:32:logging - random_forest model performance report saved to /mnt/d/fsds_aws/reports/random_forest_performance_report.html
+2025-05-08 06:57:05,447 [DEBUG] logger.py:32:logging - random_cv model performance report saved to /mnt/d/fsds_aws/reports/random_cv_performance_report.html
+2025-05-08 06:57:06,073 [DEBUG] logger.py:32:logging - grid_cv model performance report saved to /mnt/d/fsds_aws/reports/grid_cv_performance_report.html

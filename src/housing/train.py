@@ -4,6 +4,7 @@ import logging
 import os
 import pickle
 import sys
+import warnings
 
 import mlflow
 import mlflow.sklearn
@@ -19,6 +20,8 @@ from sklearn.tree import DecisionTreeRegressor
 
 from housing.helper import get_path, load_data
 from housing.logger import Logger
+
+warnings.filterwarnings("ignore")
 
 
 def linear_regression(X_train, y_train, output_model_path, run_id):
