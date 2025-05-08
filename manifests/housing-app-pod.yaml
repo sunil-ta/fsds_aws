@@ -8,7 +8,7 @@ spec:
   restartPolicy: Never
   containers:
     - name: housing-app-container
-      image: fsds/housing-repo:latest
+      image: fsds/housing-repo
       imagePullPolicy: IfNotPresent
       resources:
         requests:
